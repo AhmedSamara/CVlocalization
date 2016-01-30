@@ -69,25 +69,18 @@ print "verts 0: ", verts[0][1]
 # extract results
 for symbol in image:
     # do something useful with results
-    tl, bl, br, tr = [item for item in symbol.location]
+    #tl, bl, br, tr = [item for item in symbol.location]
 
-    points = symbol.location
-    print "points: ", points
-    """
-    found_points[0] = topLeftCorners 
-    found_points[1] = bottomLeftCorners 
-    found_points[2] = bottomRightCorners 
-    found_points[3] = topRightCorners
-    """
-    print "tl: ", tl
+    #points = np.float32([[tl[0], tl[1], 0],
+     #                    [tr[0], tr[1], 0],
+      #                   [bl[0], bl[1], 0],
+       #                  [br[0], br[1], 0]])
 
-    print "found_points: ", found_points
-    #print 'decoded', symbol.type, 'symbol', '"%s"' % symbol.data
-    #print topLeftCorners, bottomLeftCorners, bottomRightCorners, topRightCorners 
-
-    rect = cv2.minAreaRect(found_points)
-
-    ret, rvec, tvec = cv2.solvePnP(verts, verts, cam_matrix, distcoeffs)
+     
+         
+    ret, rvec, tvec = cv2.solvePnP(points, verts, cam_matrix, distcoeffs)
+    print "rvec: ", rvec
+    print "tvec: ", tvec
 
 # clean up
 del(image)
