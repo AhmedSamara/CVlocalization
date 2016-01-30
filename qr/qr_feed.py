@@ -38,20 +38,19 @@ verts = np.float32([[-l/2, -l/2],
 
 
 while True:
-    _, frame = cam.read()
+    ret, frame = cam.read()
    
-    cv2.imshow('frame: ', frame) 
-    # convert frame to im 
-    pil_im = Image.fromarray(frame)
-    
     #im to zbar frame
-    raw = pil_im.tobytes()
-    width, height = pil_im.size
-    z_im = zbar.Image(width, height, 'Y800', raw)
+    cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+    width = cam.get(3)
+    height = cam.get(4)
+    raw = cv_im.tostring()
     
+    z_im = zbar.Image(int(width), int(height), 'Y800', raw) 
+     
     # find all symbols in obj
     scanner.scan(z_im)
-
+    cv2.imshow('frame: ', cv_im)
     for symbol in z_im:
         
         print "scanning im"        
@@ -66,5 +65,9 @@ while True:
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
         print "vec:      ", tvec
-        del(z_im) 
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
+
+cap.release()
+cv2.destroyAllWindows()
