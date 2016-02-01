@@ -1,3 +1,4 @@
+from sys import argv
 import zbar
 from PIL import Image
 import cv2
@@ -7,7 +8,10 @@ import numpy as np
 scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
 
-cam = cv2.VideoCapture(0)
+if len(argv) < 2:
+    cam = cv2.VideoCapture(0)
+else:
+    cam = cv2.imread(argv[1])
 
 cam_matrix = np.zeros((3,3), np.float32)
 
@@ -40,11 +44,14 @@ verts = np.float32([[-l/2, -l/2],
 width = int(cam.get(3))
 height = int(cam.get(4))
 
+
+
 while True:
     ret, frame = cam.read()
 
     cv2.imshow('frame', frame)
    
+
     #im to zbar frame
     #cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
     im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
