@@ -37,24 +37,25 @@ verts = np.float32([[-l/2, -l/2],
                     [l/2, l/2]])
 
 
+width = int(cam.get(3))
+height = int(cam.get(4))
+
 while True:
     ret, frame = cam.read()
+
+    cv2.imshow('frame', frame)
    
     #im to zbar frame
-    cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+    #cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+    im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    pil_im = Image.fromarray(im)
 
-    cv2.imshow('ca', cv_im)
-    cv2.imshow('raw: ', frame)
-
-    width = cam.get(3)
-    height = cam.get(4)
-    raw = cv_im.tostring()
+    raw = pil_im.tobytes()
     
-    z_im = zbar.Image(int(width), int(height), 'Y800', raw) 
+    z_im = zbar.Image(width, height, 'Y800', raw) 
      
     # find all symbols in obj
     scanner.scan(z_im)
-    cv2.imshow('frame: ', cv_im)
     for symbol in z_im:
         
         print "scanning im"        
