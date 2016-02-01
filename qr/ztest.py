@@ -40,18 +40,17 @@ distcoeffs = np.zeros(4)
 
 # Dimensions of QR code
 
-rvec = np.zeros((3,1), np.float32)
-tvec = np.zeros((3,1), np.float32)
 # obtain image data
 pil = Image.open(argv[1]).convert('L')
 width, height = pil.size
 raw = pil.tobytes()
 
 # wrap image data
-image = zbar.Image(width, height, 'Y800', raw)
+z_im = zbar.Image(width, height, 'Y800', raw)
 
 # scan the image for barcodes
-scanner.scan(image)
+val = scanner.scan(z_im)
+print "scan val: ", val
 
 found_points = np.zeros((4,2), np.float32)
 verts = np.zeros((4,2), np.float32)
@@ -67,20 +66,20 @@ print "verts: ", verts
 print "verts 0: ", verts[0][1]
 
 # extract results
-for symbol in image:
+for symbol in z_im:
     # do something useful with results
-    #tl, bl, br, tr = [item for item in symbol.location]
-
-    #points = np.float32([[tl[0], tl[1], 0],
-     #                    [tr[0], tr[1], 0],
-      #                   [bl[0], bl[1], 0],
-       #                  [br[0], br[1], 0]])
+    tl, bl, br, tr = [item for item in symbol.location]
+    points = np.float32([[tl[0], tl[1], 0],
+                         [tr[0], tr[1], 0],
+                         [bl[0], bl[1], 0],
+                         [br[0], br[1], 0]])
 
      
          
     ret, rvec, tvec = cv2.solvePnP(points, verts, cam_matrix, distcoeffs)
     print "rvec: ", rvec
     print "tvec: ", tvec
+    print symbol.data
 
 # clean up
-del(image)
+del(z_im)

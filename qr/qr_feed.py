@@ -51,11 +51,11 @@ while True:
     pil_im = Image.fromarray(im)
 
     raw = pil_im.tobytes()
-    
     z_im = zbar.Image(width, height, 'Y800', raw) 
      
     # find all symbols in obj
-    scanner.scan(z_im)
+    val = scanner.scan(z_im)
+    print "scan val: ", val
     for symbol in z_im:
         
         print "scanning im"        
