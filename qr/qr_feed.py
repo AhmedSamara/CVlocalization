@@ -69,8 +69,8 @@ while True:
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
         print "vec:      ", tvec
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
 
 cap.release()
