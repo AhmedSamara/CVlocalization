@@ -42,6 +42,10 @@ while True:
    
     #im to zbar frame
     cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+
+    cv2.imshow('ca', cv_im)
+    cv2.imshow('raw: ', frame)
+
     width = cam.get(3)
     height = cam.get(4)
     raw = cv_im.tostring()
