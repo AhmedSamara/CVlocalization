@@ -34,7 +34,7 @@ distcoeffs[0,4] = 1.2459859993672681e+03
 
 
 # Dimensions of QR code
-l = 1.5
+l = 0.0381
 verts = np.float32([[-l/2, -l/2],
                     [-l/2, l/2],
                     [l/2, -l/2],
@@ -65,7 +65,8 @@ while True:
                              [tr[0], tr[1], 0],
                              [bl[0], bl[1], 0],
                              [br[0], br[1], 0]])
-        
+        print "location: ", symbol.location
+
         # draw around it
         cv2.line(frame, tl, bl, (255,0,0), 8, 8)
         cv2.line(frame, bl, br, (255,0,0), 8, 8)
