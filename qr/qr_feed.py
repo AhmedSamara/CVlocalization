@@ -3,7 +3,7 @@ import zbar
 from PIL import Image
 import cv2
 import numpy as np
-
+import time
 
 scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
@@ -41,28 +41,23 @@ verts = np.float32([[-l/2, -l/2],
                     [l/2, l/2]])
 
 
-width = int(cam.get(3))
-height = int(cam.get(4))
-
-
-
 while True:
     ret, frame = cam.read()
 
     cv2.imshow('frame', frame)
-   
-
+    cv2.imwrite('buffer.png', frame)   
+    time.sleep(0.1) 
     #im to zbar frame
     #cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
-    im = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    pil_im = Image.fromarray(im)
-
+    pil_im = Image.open('buffer.png').convert('L')
+    width, height = pil_im.size
     raw = pil_im.tobytes()
+
+    # zbar data
     z_im = zbar.Image(width, height, 'Y800', raw) 
-     
+
     # find all symbols in obj
-    val = scanner.scan(z_im)
-    print "scan val: ", val
+    scanner.scan(z_im)
     for symbol in z_im:
         
         print "scanning im"        
