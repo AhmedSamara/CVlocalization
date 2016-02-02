@@ -65,6 +65,12 @@ while True:
                              [tr[0], tr[1], 0],
                              [bl[0], bl[1], 0],
                              [br[0], br[1], 0]])
+        
+        # draw around it
+        cv2.line(frame, tl, bl, (255,0,0), 8, 8)
+        cv2.line(frame, bl, br, (255,0,0), 8, 8)
+        cv2.line(frame, br, tr, (255,0,0), 8, 8)
+        cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
         ret, rvec, tvec = cv2.solvePnP(points, verts, cam_matrix, distcoeffs)
         print "Value:    ", symbol.data
