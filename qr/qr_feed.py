@@ -40,13 +40,10 @@ verts = np.float32([[-l/2, -l/2],
                     [l/2, -l/2],
                     [l/2, l/2]])
 
-
 while True:
     ret, frame = cam.read()
 
-    cv2.imshow('frame', frame)
     cv2.imwrite('buffer.png', frame)   
-    time.sleep(0.1) 
     #im to zbar frame
     #cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
     pil_im = Image.open('buffer.png').convert('L')
@@ -68,10 +65,13 @@ while True:
                              [tr[0], tr[1], 0],
                              [bl[0], bl[1], 0],
                              [br[0], br[1], 0]])
+
         ret, rvec, tvec = cv2.solvePnP(points, verts, cam_matrix, distcoeffs)
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
         print "vec:      ", tvec
+
+    cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
