@@ -9,7 +9,7 @@ scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
 
 if len(argv) < 2:
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(1)
 else:
     cam = cv2.imread(argv[1])
 
@@ -34,11 +34,11 @@ distcoeffs[0,4] = 1.2459859993672681e+03
 
 
 # Dimensions of QR code
-l = 0.0381
-verts = np.float32([[-l/2, -l/2],
-                    [-l/2, l/2],
-                    [l/2, -l/2],
-                    [l/2, l/2]])
+l = 1.5 
+verts = np.float32([[-l/2, -l/2, 0],
+                    [-l/2, l/2, 0],
+                    [l/2, -l/2, 0],
+                    [l/2, l/2, 0]])
 
 while True:
     ret, frame = cam.read()
@@ -61,10 +61,10 @@ while True:
         # Find vertices of code
         # TODO(Find a non-dumb way of doing this)
         tl, bl, br, tr = [item for item in symbol.location]
-        points = np.float32([[tl[0], tl[1], 0],
-                             [tr[0], tr[1], 0],
-                             [bl[0], bl[1], 0],
-                             [br[0], br[1], 0]])
+        points = np.float32([[tl[0], tl[1]],
+                             [tr[0], tr[1]],
+                             [bl[0], bl[1]],
+                             [br[0], br[1]]])
         print "location: ", symbol.location
 
         # draw around it
@@ -73,7 +73,7 @@ while True:
         cv2.line(frame, br, tr, (255,0,0), 8, 8)
         cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
-        ret, rvec, tvec = cv2.solvePnP(points, verts, cam_matrix, distcoeffs)
+        ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
         print "vec:      ", tvec
