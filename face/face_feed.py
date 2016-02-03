@@ -38,10 +38,10 @@ distcoeffs[0,4] = 1.2459859993672681e+03
 face_height = 10
 face_width = 5
 
-verts = np.float32([[-face_width/2, -face_height/2],
-                    [-face_width/2, face_height/2],
-                    [face_width/2, -face_height/2],
-                    [face_width/2, face_height/2]])
+verts = np.float32([[-face_width/2, -face_height/2, 0],
+                    [-face_width/2, face_height/2, 0],
+                    [face_width/2, -face_height/2, 0],
+                    [face_width/2, face_height/2, 0]])
 
 while True:
     ret, frame = cam.read()
@@ -57,12 +57,12 @@ while True:
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x,y), (x+w, y+h), (0,255, 0), 2)
 
-        points = np.float32([[x, y, 0],
-                             [x, y+h, 0],
-                             [x+w, y, 0],
-                             [x+w,y+h, 0]])
+        points = np.float32([[x, y],
+                             [x, y+h],
+                             [x+w, y],
+                             [x+w,y+h]])
 
-        ret, rvec, tvec = cv2.solvePnP(points, verts
+        ret, rvec, tvec = cv2.solvePnP(verts, points 
                                       , cam_matrix, distcoeffs)
 
         print "dist: ", tvec

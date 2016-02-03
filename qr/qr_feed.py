@@ -9,10 +9,15 @@ scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
 
 if len(argv) < 2:
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
+    # Set size of camera for logitech C270 camera
+    cam.set(3,1280)
+    cam.set(4,720)
 else:
     cam = cv2.imread(argv[1])
 
+
+# Set calibration matrix. Look @ openCV docs on cam calibration for detail
 cam_matrix = np.zeros((3,3), np.float32)
 
 cam_matrix[0,0] = 1.9961704327353971e+03
