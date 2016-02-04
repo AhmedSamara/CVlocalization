@@ -78,10 +78,19 @@ while True:
         cv2.line(frame, br, tr, (255,0,0), 8, 8)
         cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
+        # identify corners individually
+        cv2.putText(frame, "top_left" , tl, cv2.FONT_HERSHEY_SIMPLEX
+                    ,0.2, (100,50,255))
+        cv2.circle(frame, tl, 10, (0,0,255))
+
         ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
+        cv2.putText(frame, str(tvec) , bl, cv2.FONT_HERSHEY_SIMPLEX
+                    ,0.2, (100,50,255))
+        
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
         print "vec:      ", tvec
+        cv2.imwrite('identified.png', frame)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
