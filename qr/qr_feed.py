@@ -46,6 +46,11 @@ verts = np.float32([[-l/2, -l/2, 0],
                     [l/2, l/2, 0]])
 
 while True:
+
+    cam.grab()
+    cam.grab()
+    cam.grab()
+    cam.grab()
     ret, frame = cam.read()
 
     cv2.imwrite('buffer.png', frame)   
@@ -73,11 +78,11 @@ while True:
         print "location: ", symbol.location
 
         # draw around it
-        cv2.line(frame, tl, bl, (255,0,0), 8, 8)
-        cv2.line(frame, bl, br, (255,0,0), 8, 8)
-        cv2.line(frame, br, tr, (255,0,0), 8, 8)
-        cv2.line(frame, tr, tl, (255,0,0), 8, 8)
-
+        #cv2.line(frame, tl, bl, (255,0,0), 8, 8)
+        #cv2.line(frame, bl, br, (255,0,0), 8, 8)
+        #cv2.line(frame, br, tr, (255,0,0), 8, 8)
+        #cv2.line(frame, tr, tl, (255,0,0), 8, 8)
+        cv2.rectangle(frame, bl, tr, (0,0,255), 2)
         # identify corners individually
         cv2.putText(frame, "top_left" , tl, cv2.FONT_HERSHEY_SIMPLEX
                     ,0.2, (100,50,255))
