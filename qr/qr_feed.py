@@ -6,6 +6,7 @@ import numpy as np
 import time
 import qr_code as qr
 
+from pid import PID
 
 scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
@@ -47,12 +48,29 @@ verts = np.float32([[-l/2, -l/2, 0],
                     [l/2, -l/2, 0],
                     [l/2, l/2, 0]])
 
+step_size = 5
+box_x = 0
+box_y = 0
+bl = 160
+
+
+px = PID()
+py = PID()
+
+p = 0.1
+i = 0
+d = 0
+
+px.set_k_values(p, i, d)
+py.set_k_values(p, i, d)
+
+
 while True:
 
-    cam.grab()
-    cam.grab()
-    cam.grab()
-    cam.grab()
+    #cam.grab()
+    #cam.grab()
+    #cam.grab()
+    #cam.grab()
     ret, frame = cam.read()
 
     cv2.imwrite('buffer.png', frame)   
@@ -69,20 +87,44 @@ while True:
     # find all symbols in obj
     scanner.scan(z_im)
     for symbol in z_im:
-       
         codes.append(qr.QRCode(symbol, l))
 
-
+    
     for code in codes:
         #_, rvec, tvec = cv2.solvePnP(verts, code.points, cam_matrix, distcoeffs)
         _, code.rvec, code.tvec = cv2.solvePnP(verts, code.points, cam_matrix, distcoeffs)
-        print code.centroid_location
         print code.centroid_location
          
         cv2.putText(frame, str(code.tvec) , code.centroid_location
                     , cv2.FONT_HERSHEY_SIMPLEX ,0.2, (100,50,255))
         
         cv2.imwrite('identified.png', frame)
+        # Adjust location of cap box based on PID constants
+        error_x = code.centroid_location[0] - box_x
+        error_y = code.centroid_location[1] - box_y
+        
+                         
+        print "error: ", error_x, error_y 
+         
+        # Draw capture box
+        c_x = px.pid(code.centroid_location[0] , box_x, 0.001)
+        c_y = py.pid(code.centroid_location[1] , box_y, 0.001)
+    
+        print "crct: ", c_x, c_y
+
+        box_x += c_x
+        box_y += c_y
+
+        if(box_x > width):
+            box_x = width
+        if(box_y > height):
+            box_y = height
+
+        print "box: ", box_x, box_y
+        cv2.rectangle(frame, (int(box_x-bl/2), int(box_y-bl/2))
+                           , (int(box_x+bl/2), int(box_y+bl/2)), (0,0,255)) 
+
+        
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
