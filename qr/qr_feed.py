@@ -4,6 +4,8 @@ from PIL import Image
 import cv2
 import numpy as np
 import time
+import qr_code as qr
+
 
 scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
@@ -63,44 +65,28 @@ while True:
     # zbar data
     z_im = zbar.Image(width, height, 'Y800', raw) 
 
+    codes = []
     # find all symbols in obj
     scanner.scan(z_im)
     for symbol in z_im:
-        
-        print "scanning im"        
-        # Find vertices of code
-        # TODO(Find a non-dumb way of doing this)
-        tl, bl, br, tr = [item for item in symbol.location]
-        points = np.float32([[tl[0], tl[1]],
-                             [tr[0], tr[1]],
-                             [bl[0], bl[1]],
-                             [br[0], br[1]]])
-        print "location: ", symbol.location
+       
+        codes.append(qr.QRCode(symbol, l))
 
-        # draw around it
-        #cv2.line(frame, tl, bl, (255,0,0), 8, 8)
-        #cv2.line(frame, bl, br, (255,0,0), 8, 8)
-        #cv2.line(frame, br, tr, (255,0,0), 8, 8)
-        #cv2.line(frame, tr, tl, (255,0,0), 8, 8)
-        cv2.rectangle(frame, bl, tr, (0,0,255), 2)
-        # identify corners individually
-        cv2.putText(frame, "top_left" , tl, cv2.FONT_HERSHEY_SIMPLEX
-                    ,0.2, (100,50,255))
-        cv2.circle(frame, tl, 10, (0,0,255))
 
-        ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
-        cv2.putText(frame, str(tvec) , bl, cv2.FONT_HERSHEY_SIMPLEX
-                    ,0.2, (100,50,255))
+    for code in codes:
+        #_, rvec, tvec = cv2.solvePnP(verts, code.points, cam_matrix, distcoeffs)
+        _, code.rvec, code.tvec = cv2.solvePnP(verts, code.points, cam_matrix, distcoeffs)
+        print code.centroid_location
+        print code.centroid_location
+         
+        cv2.putText(frame, str(code.tvec) , code.centroid_location
+                    , cv2.FONT_HERSHEY_SIMPLEX ,0.2, (100,50,255))
         
-        print "Value:    ", symbol.data
-        print "Rotation: ", rvec
-        print "vec:      ", tvec
         cv2.imwrite('identified.png', frame)
 
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
 
 cap.release()
 cv2.destroyAllWindows()
