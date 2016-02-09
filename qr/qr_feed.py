@@ -12,7 +12,7 @@ scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
 
 if len(argv) < 2:
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(1)
     # Set size of camera for logitech C270 camera
     cam.set(3,1280)
     cam.set(4,720)
@@ -73,9 +73,15 @@ while True:
     #cam.grab()
     ret, frame = cam.read()
 
-    cv2.imwrite('buffer.png', frame)   
+    # grayscale
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    #ret, frame = cv2.threshold(gray, 127, 255, 0)
+    
+    #frame = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+
+    ret, frame = cv2.threshold(gray, 170, 255, cv2.THRESH_BINARY)
+
     #im to zbar frame
-    #cv_im = cv2.cvtColor(frame, cv2.CV_LOAD_IMAGE_GRAYSCALE)
     pil_im = Image.open('buffer.png').convert('L')
     width, height = pil_im.size
     raw = pil_im.tobytes()
@@ -83,49 +89,27 @@ while True:
     # zbar data
     z_im = zbar.Image(width, height, 'Y800', raw) 
 
-    codes = []
     # find all symbols in obj
     scanner.scan(z_im)
     for symbol in z_im:
-        codes.append(qr.QRCode(symbol, l))
-
-    
-    for code in codes:
-        #_, rvec, tvec = cv2.solvePnP(verts, code.points, cam_matrix, distcoeffs)
-        _, code.rvec, code.tvec = cv2.solvePnP(verts, code.points, cam_matrix, distcoeffs)
-        print code.centroid_location
-         
-        cv2.putText(frame, str(code.tvec) , code.centroid_location
-                    , cv2.FONT_HERSHEY_SIMPLEX ,0.2, (100,50,255))
+        # Find vertices of code
+        # TODO(Find a non-dumb way of doing this)
+        tl, bl, br, tr = [item for item in symbol.location]
+        points = np.float32(np.float32(symbol.location))
         
-        cv2.imwrite('identified.png', frame)
-        # Adjust location of cap box based on PID constants
-        error_x = code.centroid_location[0] - box_x
-        error_y = code.centroid_location[1] - box_y
-        
-                         
-        print "error: ", error_x, error_y 
-         
-        # Draw capture box
-        c_x = px.pid(code.centroid_location[0] , box_x, 0.001)
-        c_y = py.pid(code.centroid_location[1] , box_y, 0.001)
-    
-        print "crct: ", c_x, c_y
+        # draw around it
+        cv2.line(frame, tl, bl, (255,0,0), 8, 8)
+        cv2.line(frame, bl, br, (255,0,0), 8, 8)
+        cv2.line(frame, br, tr, (255,0,0), 8, 8)
+        cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
-        box_x += c_x
-        box_y += c_y
-
-        if(box_x > width):
-            box_x = width
-        if(box_y > height):
-            box_y = height
-
-        print "box: ", box_x, box_y
-        cv2.rectangle(frame, (int(box_x-bl/2), int(box_y-bl/2))
-                           , (int(box_x+bl/2), int(box_y+bl/2)), (0,0,255)) 
+        ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
+        print "Value:    ", symbol.data
+        print "Rotation: ", rvec
+        print "vec:      ", tvec
 
         
-
+    del(z_im)
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
