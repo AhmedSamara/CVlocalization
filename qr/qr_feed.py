@@ -81,8 +81,9 @@ while True:
     
     frame = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
 
-    
+    frame = cv2.bilateralFilter(frame, 9, 75, 75) 
 
+    cv2.imwrite('buffer.png', frame)
     #im to zbar frame
     pil_im = Image.open('buffer.png').convert('L')
     width, height = pil_im.size
