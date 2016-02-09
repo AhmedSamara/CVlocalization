@@ -1,4 +1,6 @@
 from sys import argv
+import math
+
 import zbar
 from PIL import Image
 import cv2
@@ -89,6 +91,8 @@ while True:
     # zbar data
     z_im = zbar.Image(width, height, 'Y800', raw) 
 
+    mag_vec = []
+    mag_2d = []
     # find all symbols in obj
     scanner.scan(z_im)
     for symbol in z_im:
@@ -104,15 +108,24 @@ while True:
         cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
         ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
+        mag_2d.append(math.sqrt(rvec[0]**2 + rvec[1]**2)
+        mag_vec.append(math.sqrt(rvec[0]**2 + rvec[1]**2)
+        
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
         print "vec:      ", tvec
 
-        
     del(z_im)
+    del(pil_im)     
+    
+    # Identify closest qr code and go for that.
+    target = min(mag_vec)
+
+       
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
 
 cap.release()
 cv2.destroyAllWindows()
