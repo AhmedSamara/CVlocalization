@@ -14,7 +14,7 @@ scanner = zbar.ImageScanner()
 scanner.parse_config('enable')
 
 if len(argv) < 2:
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
     # Set size of camera for logitech C270 camera
     cam.set(3,1280)
     cam.set(4,720)
@@ -79,9 +79,9 @@ while True:
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     #ret, frame = cv2.threshold(gray, 127, 255, 0)
     
-    #frame = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
+    frame = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2)
 
-    ret, frame = cv2.threshold(gray, 170, 255, cv2.THRESH_BINARY)
+    
 
     #im to zbar frame
     pil_im = Image.open('buffer.png').convert('L')
@@ -108,8 +108,8 @@ while True:
         cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
         ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
-        mag_2d.append(math.sqrt(rvec[0]**2 + rvec[1]**2)
-        mag_vec.append(math.sqrt(rvec[0]**2 + rvec[1]**2)
+        mag_2d.append(math.sqrt(rvec[0]**2 + rvec[1]**2))
+        mag_vec.append(math.sqrt(rvec[0]**2 + rvec[1]**2))
         
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
@@ -119,7 +119,8 @@ while True:
     del(pil_im)     
     
     # Identify closest qr code and go for that.
-    target = min(mag_vec)
+    if mag_vec != []:
+        target = min(mag_vec)
 
        
     cv2.imshow('frame', frame)
