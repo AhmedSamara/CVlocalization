@@ -13,6 +13,7 @@ while True:
     blur = cv2.GaussianBlur(gray, (7,7), 0)
     edge = cv2.Canny(blur, 50, 150)
 
+    cv2.imshow('blur', blur)
     cv2.imshow('edge', edge)
 
     (cnts,_) = cv2.findContours(edge.copy(), cv2.RETR_EXTERNAL,
@@ -31,15 +32,16 @@ while True:
             # find areas
             area = cv2.contourArea(c)
             hullArea = cv2.contourArea(cv2.convexHull(c))
+
+            cv2.drawContours(frame, [cv2.convexHull(c)], 0, (0,0,255),2)
             solidity = area / float(hullArea)
 
             keepSolidity = solidity > 0.9
             keepAspectRatio = (aspectRatio >= 0.8 and aspectRatio <= 1.2 ) \
             or (aspectRatio >= 1.8 and aspectRatio <= 2.2)
 
-            if keepSolidity and keepAspectRatio:
+            if keepSolidity :
                 cv2.drawContours(frame, [approx], -1, (0,0,255), 4)
-                print "a"
     cv2.drawContours(frame, squares, -1, (0, 255,0), 3)
     cv2.imshow("screen", frame)
 
