@@ -109,8 +109,6 @@ while True:
         cv2.line(frame, tr, tl, (255,0,0), 8, 8)
 
         ret, rvec, tvec = cv2.solvePnP(verts, points, cam_matrix, distcoeffs)
-        mag_2d.append(math.sqrt(rvec[0]**2 + rvec[1]**2))
-        mag_vec.append(math.sqrt(rvec[0]**2 + rvec[1]**2))
         
         print "Value:    ", symbol.data
         print "Rotation: ", rvec
