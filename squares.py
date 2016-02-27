@@ -7,16 +7,21 @@ cap = cv2.VideoCapture(0)
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
+    
+    frame_orig = frame
 
     # gray and blur
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (7,7), 0)
-    edge = cv2.Canny(blur, 50, 150)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame = cv2.GaussianBlur(frame, (7,7), 0)
+    cv2.imshow('blur', frame)
+    #frame = cv2.adaptiveThreshold(frame ,255  
+    #        , cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
 
-    cv2.imshow('blur', blur)
-    cv2.imshow('edge', edge)
+    frame = cv2.Canny(frame, 50, 150)
 
-    (cnts,_) = cv2.findContours(edge.copy(), cv2.RETR_EXTERNAL,
+    cv2.imshow('edge', frame)
+
+    (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_EXTERNAL,
                                     cv2.CHAIN_APPROX_SIMPLE)
 
     squares = []
@@ -41,9 +46,9 @@ while True:
             or (aspectRatio >= 1.8 and aspectRatio <= 2.2)
 
             if keepSolidity :
-                cv2.drawContours(frame, [approx], -1, (0,0,255), 4)
-    cv2.drawContours(frame, squares, -1, (0, 255,0), 3)
-    cv2.imshow("screen", frame)
+                cv2.drawContours(frame_orig, [approx], -1, (0,0,255), 4)
+    cv2.drawContours(frame_orig, squares, -1, (0, 255,0), 3)
+    cv2.imshow("screen", frame_orig)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
