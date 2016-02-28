@@ -1,5 +1,6 @@
 import os
 from fnmatch import fnmatch
+import inspect
 
 import cv2
 import numpy as np
@@ -19,23 +20,41 @@ for path, subdir, files in os.walk('test_images'):
             images.append(cv_im)
 
 
-# get list of all fitler strategies.
-filter_strats = [f for f in filter_strategies.__dict__.values() if hasattr(f,'__call__')]
+
+# get list of names of all filter strategies.
+filter_strats = [func_name for func_name, func \
+     in filter_strategies.__dict__.iteritems() \
+      if inspect.isfunction(func)]
+
+#get actual function object from str name
+f0 = getattr(filter_strategies, filter_strats[0])
+im0 = images[0]
+
+print "=======================================================+"
+_, res = f0(im0)
+print res
+#cv2.imshow('res', np.float32(res))
+#cv2.waitKey(0)
+
+print "======================================================"
 
 
-for strategy in filter_strats:
-    # track number of found qr codes, in how many images
-    qr_count = 0
-    im_count = 0
-    for im in images:
+for strategy_name in filter_strats:
+   #get actual function object from str name
+   strategy_function = getattr(filter_strategies, strategy_name)
+
+   # track number of found qr codes, in how many images
+   qr_count = 0
+   im_count = 0
+
+   for im in images:
         im_count += 1
-        f = strategy.__call__(im)
-        print f
-        break         
+        _, cleaned_im = strategy_function(im)
+
         cv2.imwrite('buffer.png', cleaned_im)
         #im to zbar frame
-        print cleaned_im
-        cv2.imshow('cleaned_im')
+        cv2.imshow('cleaned_im', cleaned_im)
+        cv2.waitKey(0)
 
         pil_im = Image.open('buffer.png').convert('L')
         width, height = pil_im.size
@@ -45,4 +64,5 @@ for strategy in filter_strats:
         for symbol in z_im:
             qr_count += 1
         if qr_count == 0:
-            print "strategy: {}, found no QR in: {}".format(strategy, im)
+            #print "strategy: {}, found no QR in: {}".format(strategy_name, str(im))
+            print "||||||||||||||||||||||||||||||||"
