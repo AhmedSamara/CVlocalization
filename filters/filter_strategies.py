@@ -19,7 +19,7 @@ def basic_filter(im):
 def blur_bw(im):
     # todo, expirement different threshholds
     im = cv2.GaussianBlur(im, (5,5), 0)
-    im = cv2.threshold(im, 127, 255, cv2.THRESH_BINARY)
+    _, im = cv2.threshold(im, 127, 255, cv2.THRESH_BINARY)
     return im
 
 def blur_adaptive_thresh(im):

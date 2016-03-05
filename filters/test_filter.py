@@ -8,6 +8,7 @@ import zbar
 from PIL import Image
 
 import filter_strategies
+import basic_mod
 
 
 images = []
@@ -26,18 +27,17 @@ filter_strats = [func_name for func_name, func \
      in filter_strategies.__dict__.iteritems() \
       if inspect.isfunction(func)]
 
-#get actual function object from str name
-f0 = getattr(filter_strategies, filter_strats[0])
+basic_funcs = [func_name for func_name, func \
+     in basic_mod.__dict__.iteritems() \
+      if inspect.isfunction(func)]
+
 im0 = images[0]
+f0 = getattr(filter_strategies, filter_strats[0])
 
 print "=======================================================+"
-_, res = f0(im0)
-print res
-#cv2.imshow('res', np.float32(res))
-#cv2.waitKey(0)
+print f0(im0)
 
 print "======================================================"
-
 
 for strategy_name in filter_strats:
    #get actual function object from str name
@@ -53,8 +53,8 @@ for strategy_name in filter_strats:
 
         cv2.imwrite('buffer.png', cleaned_im)
         #im to zbar frame
-        cv2.imshow('cleaned_im', cleaned_im)
-        cv2.waitKey(0)
+#        cv2.imshow('cleaned_im', cleaned_im)
+ #       cv2.waitKey(0)
 
         pil_im = Image.open('buffer.png').convert('L')
         width, height = pil_im.size

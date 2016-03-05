@@ -1,6 +1,11 @@
+from sys import argv
 import cv2
 
-cap = cv2.VideoCapture(1)
+n = int(argv[1])
+
+
+print "n: ", n
+cap = cv2.VideoCapture(n)
 # set resolution to low
 
 
