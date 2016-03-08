@@ -1,3 +1,4 @@
+from math import sqrt
 import cv2
 
 cap = cv2.VideoCapture(0)
@@ -66,8 +67,27 @@ while True:
     i=0
     for crn in corner_squares:
         cv2.circle(frame_orig, crn, 5, (100,255,0))
-        i += 1
         cv2.putText(frame_orig, str(i), crn, cv2.FONT_HERSHEY_PLAIN,1.0, (255,100,55))
+        i += 1
+
+    if len(corner_squares) > 2:
+        # Find anchor
+        anchor = corner_squares[0]
+        copy_sq = list(corner_squares)
+        del copy_sq[0]
+        # Look for closest sq
+        copy_sq.sort(key=lambda x: sqrt((anchor[0] - x[0])**2 
+                                       + (anchor[1] - x[1])**2))
+
+        # Closest square, guranteed to be same QR
+        cv2.circle(frame_orig, copy_sq[0], 15, (100,255,255))
+
+        # If same X
+            # Look for same Y
+        # Else
+            # Look for same X
+
+
     cv2.imshow("screen", frame_orig)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
