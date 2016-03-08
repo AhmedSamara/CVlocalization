@@ -1,17 +1,18 @@
 from sys import argv
 import cv2
 
-n = int(argv[1])
+#n = int(argv[1])
 
 
-print "n: ", n
-cap = cv2.VideoCapture(n)
+cap = cv2.VideoCapture("/dev/video0")
 # set resolution to low
-
 
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
+    
+    print ret
+
     cv2.imshow('surf', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):

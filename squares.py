@@ -1,6 +1,6 @@
 import cv2
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 # set resolution to low
 
 
@@ -11,8 +11,9 @@ while True:
     frame_orig = frame
 
     # gray and blur
+    frame = cv2.GaussianBlur(frame,(5,5),0)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    frame = cv2.GaussianBlur(frame, (7,7), 0)
+    frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 2)
     cv2.imshow('blur', frame)
     #frame = cv2.adaptiveThreshold(frame ,255  
     #        , cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
@@ -21,7 +22,7 @@ while True:
 
     cv2.imshow('edge', frame)
 
-    (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_EXTERNAL,
+    (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_TREE,
                                     cv2.CHAIN_APPROX_SIMPLE)
 
     squares = []
@@ -43,9 +44,10 @@ while True:
 
             keepSolidity = solidity > 0.9
             keepAspectRatio = (aspectRatio >= 0.8 and aspectRatio <= 1.2 ) \
-            or (aspectRatio >= 1.8 and aspectRatio <= 2.2)
 
-            if keepSolidity :
+            keepSize = cv2.arcLength(c, True) > 60
+
+            if keepSolidity and keepAspectRatio and keepSize:
                 cv2.drawContours(frame_orig, [approx], -1, (0,0,255), 4)
     cv2.drawContours(frame_orig, squares, -1, (0, 255,0), 3)
     cv2.imshow("screen", frame_orig)
