@@ -4,6 +4,13 @@ cap = cv2.VideoCapture(0)
 # set resolution to low
 
 
+def center(cnt):
+
+    (x,y), r = cv2.minEnclosingCircle(cnt)
+    center = (int(x), int(y))
+    return center
+
+
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -22,10 +29,10 @@ while True:
 
     cv2.imshow('edge', frame)
 
-    (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_TREE,
+    (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_EXTERNAL,
                                     cv2.CHAIN_APPROX_SIMPLE)
 
-    squares = []
+    corner_squares = []
     for c in cnts:
         peri = cv2.arcLength(c, True)
         approx = cv2.approxPolyDP(c, 0.02*peri, True)
@@ -34,6 +41,7 @@ while True:
         if len(approx) >= 4 and len(approx) <= 6:
             (x, y, w, h) = cv2.boundingRect(approx)
             aspectRatio = w/ float(h)
+
 
             # find areas
             area = cv2.contourArea(c)
@@ -49,7 +57,17 @@ while True:
 
             if keepSolidity and keepAspectRatio and keepSize:
                 cv2.drawContours(frame_orig, [approx], -1, (0,0,255), 4)
-    cv2.drawContours(frame_orig, squares, -1, (0, 255,0), 3)
+                cp = center(c)
+                corner_squares.append(cp)
+                #cv2.circle(frame_orig, c, 2, (0,255,0))
+
+    corner_squares.sort(key=lambda tup:tup[1])
+    
+    i=0
+    for crn in corner_squares:
+        cv2.circle(frame_orig, crn, 5, (100,255,0))
+        i += 1
+        cv2.putText(frame_orig, str(i), crn, cv2.FONT_HERSHEY_PLAIN,1.0, (255,100,55))
     cv2.imshow("screen", frame_orig)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
