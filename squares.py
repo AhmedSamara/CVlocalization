@@ -5,6 +5,9 @@ cap = cv2.VideoCapture(0)
 # set resolution to low
 
 
+X_THRESH = 5
+Y_THRESH = 5
+
 def center(cnt):
 
     (x,y), r = cv2.minEnclosingCircle(cnt)
