@@ -17,14 +17,36 @@ def find_center(cnt):
 def distance(a, b):
    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
+def same_qr(marker1, marker2):
+    """Checks to see if markers are on same qr.
+    """
+    # Assume that both markers are roughly similair size
+    dist = distance(marker1.center, marker2.center)     
+
+    if dist > 0.8 * marker1.length and dist < 1.2 * marker1.length:
+        return True
+    return False
+    
 
 #idk if we should use this
-class marker(object):
-    def __init__(contour):
+class Marker(object):
+    def __init__(self, contour):
+        peri = cv2.arcLength(contour, True)
         self.contour = contour
+        #co-ords based on center of marker
         self.center = find_center(contour)
+
+        self.x = self.center[0]
+        self.y = self.center[1]
+        
+
         self.approx = cv2.approxPolyDP(contour, 0.02*peri, True)
-        self.dims = cv2.boundingRect(self.approx)
+
+        #optimize
+        (rx, ry, w, h) = cv2.boundingRect(self.approx) 
+        self.width = w
+        self.height = h
+        self.lenght = (w + h)/2
 
 def is_marker(contour):
 
@@ -40,7 +62,7 @@ def is_marker(contour):
         area = cv2.contourArea(c)
         hullArea = cv2.contourArea(cv2.convexHull(c))
 
-        cv2.drawContours(frame, [cv2.convexHull(c)], 0, (0,0,255),2)
+        #cv2.drawContours(frame, [cv2.convexHull(c)], 0, (0,0,255),2)
         solidity = area / float(hullArea)
 
         keepSolidity = solidity > 0.9
@@ -77,70 +99,42 @@ while True:
                                     cv2.CHAIN_APPROX_SIMPLE)
 
     qr_list = []
-    
-    markers = []
-    for c in cnts:
-        if is_marker(c):
-            cv2.drawContours(frame_orig, [c], -1, (0,0,255), 4)
-            cp = find_center(c)
-            markers.append(cp)
 
-    # Sort squares in order by Y axis
-    markers.sort(key=lambda tup:tup[1])
+    # This is the pythonic way I swear
+    markers = [Marker(c) for c in cnts if is_marker(c)]
+
+    # Sort Markers by Y axis
+    markers.sort(key=lambda x: x.y)
     
     # Number squares by height
-    i=0
-    for crn in markers:
-        cv2.circle(frame_orig, crn, 5, (100,255,0))
-        #cv2.putText(frame_orig, str(i), crn, cv2.FONT_HERSHEY_PLAIN,1.0, (255,100,55))
-        i += 1
+    #i=0
+    #for mrk in markers:
+    #    cv2.circle(frame_orig, mrk.center, 5, (100,255,0))
+    #    cv2.putText(frame_orig, str(i), mrk.center, cv2.FONT_HERSHEY_PLAIN,1.0, (255,100,55))
+    #    i += 1
+ 
+    
+    for mrk in markers:
+        other_marks = list(markers)
+        # Exclude current from calculations
+        other_marks.remove(mrk)
+        
+        other_marks.sort(key=lambda x: distance(mrk.center, x.center))
 
-    # enough squares for QR found
-    if len(markers) > 2:
-        # Find anchor
-        anchor = markers[0]
-        copy_sq = list(markers)
-
-
-        # Look for closest sq
-        del copy_sq[0]
-        copy_sq.sort(key=lambda x: sqrt((anchor[0] - x[0])**2 
-                                       + (anchor[1] - x[1])**2))
-
-        # next square
-        # Closest square, guranteed to be same QR
-        anchor2 = copy_sq[0]
-        expected_dist = sqrt((anchor[0] - anchor2[0])**2 \
-                           + (anchor[1] - anchor2[1])**2)
-
-
-        print "distance: ", expected_dist
-        cv2.circle(frame_orig, copy_sq[0], 15, (100,255,255))
-        sameX = abs(anchor[0]-anchor2[0]) < THRESH_X
-        sameY = abs(anchor[1]-anchor2[1]) < THRESH_Y
-        # If same X
-        if abs(anchor[0]-anchor2[0]) < THRESH_X:
-            
-            # Look for next in same Y
-            copy_sq.sort(key=lambda q: abs(q[1]-anchor[1]))
-            
-            # Look for same Y, but also at expected location
-            # Optimization: No need to iterate past first few
-            for q in copy_sq:
-                print "here"
-                sameY = abs(q[1]-anchor[1]) < THRESH_Y
-                if sameY:
-                    anchor3 = q
-                    print "part 3 found"
-                    pts = [anchor, anchor2, anchor2]
-                    #cv2.fillPoly(frame_orig, pts, (255,255,255))
-                
-                    
-
-        # Else
-            # Look for same X
-
-
+        # next marker.
+        # todo: verify it's same block
+        b = other_marks[0]
+        
+        other_marks.remove(b)
+        # TODO(Something about verifying second closest isn't diff block)
+        # either check x, y based on marker size
+        # Maybe user minAreaRect to verify 
+            # ie: a non-0 angle rectangle means one is wrong
+        # If second closest is not on same qr as a, find closest to b
+        c = other_marks[1]
+        
+        
+ 
     cv2.imshow("screen", frame_orig)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
