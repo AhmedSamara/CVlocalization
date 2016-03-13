@@ -19,14 +19,18 @@ def same_qr(marker1, marker2):
     """
     # Assume that both markers are roughly similair size
     dist = distance(marker1.center, marker2.center)     
-    
+    height = (marker1.height + marker2.height)/2
+    width  = (marker2.width + marker2.width)/2    
+
     dx = abs(marker1.x - marker2.x)
     dy = abs(marker1.y - marker2.y)
 
-    if dist > 0.8 * marker1.length and dist < 1.2 * marker1.length:
+    #markers are expected to be 1.5 marker lengths apart
+    if dx < 1.8 * width and dx > 1.3 * width:
+        return True
+    if dy < 1.8 * height and dy > 1.3 * height:
         return True
     return False
-    
 
 #idk if we should use this
 class Marker(object):
@@ -140,12 +144,15 @@ while True:
         matches = [m for m in markers if same_qr(mrk, m)]
         for m in matches:
             markers.remove(m)    
-
+        print len(matches)
         if len(matches) > 2:
             print "error: too many matches"
             break
         elif len(matches) == 2:
-            qr_list.append(PartialQR(mrk, matches[0], matches[2]))
+            qr_list.append(PartialQR(mrk, matches[0], matches[1]))
+            cv2.FillPoly(frame_orig, [mrk.center, 
+                                      matches[0].center, 
+                                      matches[1].center], (0,0,255))
         elif len(matches) == 1:
             # Find the next marker based on new marker
             found=0
