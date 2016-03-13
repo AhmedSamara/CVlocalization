@@ -5,9 +5,6 @@ cap = cv2.VideoCapture(0)
 # set resolution to low
 
 
-THRESH_X = 15
-THRESH_Y = 15
-
 def find_center(cnt):
 
     (x,y), r = cv2.minEnclosingCircle(cnt)
@@ -22,6 +19,9 @@ def same_qr(marker1, marker2):
     """
     # Assume that both markers are roughly similair size
     dist = distance(marker1.center, marker2.center)     
+    
+    dx = abs(marker1.x - marker2.x)
+    dy = abs(marker1.y - marker2.y)
 
     if dist > 0.8 * marker1.length and dist < 1.2 * marker1.length:
         return True
@@ -46,7 +46,15 @@ class Marker(object):
         (rx, ry, w, h) = cv2.boundingRect(self.approx) 
         self.width = w
         self.height = h
-        self.lenght = (w + h)/2
+        self.length = (w + h)/2
+
+class PartialQR(object):
+    
+    def __init__(self, a, b, c):
+        self.marker1 = a
+        self.marker2 = b
+        self.marker3 = c
+
 
 def is_marker(contour):
 
@@ -76,6 +84,14 @@ def is_marker(contour):
             return False
  
 
+def find_matching_marker(marker, marker_list):
+    """finds all markers in the same list."""
+    marker_list.remove(marker)
+
+    matches = [m for m in marker_list if same_qr(marker, m)]
+    return matches
+        
+
 
 while True:
     # Capture frame-by-frame
@@ -98,7 +114,6 @@ while True:
     (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_EXTERNAL,
                                     cv2.CHAIN_APPROX_SIMPLE)
 
-    qr_list = []
 
     # This is the pythonic way I swear
     markers = [Marker(c) for c in cnts if is_marker(c)]
@@ -114,27 +129,38 @@ while True:
     #    i += 1
  
     
+    qr_list = []
     for mrk in markers:
-        other_marks = list(markers)
-        # Exclude current from calculations
-        other_marks.remove(mrk)
-        
-        other_marks.sort(key=lambda x: distance(mrk.center, x.center))
+        # Exclude current from search.
+        markers.remove(mrk)
 
-        # next marker.
-        # todo: verify it's same block
-        b = other_marks[0]
-        
-        other_marks.remove(b)
-        # TODO(Something about verifying second closest isn't diff block)
-        # either check x, y based on marker size
-        # Maybe user minAreaRect to verify 
-            # ie: a non-0 angle rectangle means one is wrong
-        # If second closest is not on same qr as a, find closest to b
-        c = other_marks[1]
-        
-        
- 
+        # Search for matching markers.
+        # Should return 2 markers if it's the corner one (both other markers are across)
+        # only one otherwise.
+        matches = [m for m in markers if same_qr(mrk, m)]
+        for m in matches:
+            markers.remove(m)    
+
+        if len(matches) > 2:
+            print "error: too many matches"
+            break
+        elif len(matches) == 2:
+            qr_list.append(PartialQR(mrk, matches[0], matches[2]))
+        elif len(matches) == 1:
+            # Find the next marker based on new marker
+            found=0
+            for m in markers:
+                if same_qr(matches[0], m):
+                    matches.append(m)
+                    markers.remove(m)
+                    found=1
+            if found==0:
+                print "error, no matvhes"
+        elif len(matches) == 0:
+            print "error case, no matches found"""
+            print "probably a cut-off code"""
+            qr_list.append(PartialQR(mrk, None, None))
+
     cv2.imshow("screen", frame_orig)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
