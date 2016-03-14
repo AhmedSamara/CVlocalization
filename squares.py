@@ -1,5 +1,6 @@
 from math import sqrt
 import cv2
+import numpy as np
 
 cap = cv2.VideoCapture(0)
 # set resolution to low
@@ -31,8 +32,6 @@ def same_qr(marker1, marker2):
     dx = abs(marker1.x - marker2.x) 
     dy = abs(marker1.y - marker2.y)
     
-    print "width: ", width 
-    print "d-width: ", dx  
     #markers are expected to be 2.5 marker lengths apart
     # marker is on same Y, but 
     
@@ -126,7 +125,6 @@ while True:
     frame = cv2.GaussianBlur(frame,(5,5),0)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 2)
-    cv2.imshow('blur', frame)
     #frame = cv2.adaptiveThreshold(frame ,255  
     #        , cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
 
@@ -163,20 +161,20 @@ while True:
         # Should return 2 markers if it's the corner one (both other markers are across)
         # only one otherwise.
         matches = [m for m in markers if same_qr(mrk, m)]
-        print matches
-
         for m in matches:
             markers.remove(m)    
-        print len(matches)
         if len(matches) > 2:
-            print "error: too many matches"
-            break
+            #print "error: too many matches"
+            n =0
         elif len(matches) == 2:
             qr_list.append(PartialQR(mrk, matches[0], matches[1]))
-            #cv2.FillPoly(frame_orig, [mrk.center, 
-            #                          matches[0].center, 
-            #                          matches[1].center], (0,0,255))
+            
+            t = np.array([mrk.center, 
+                          matches[0].center, 
+                          matches[1].center])
+            cv2.fillConvexPoly(frame_orig, t, (0,0,255))
         elif len(matches) == 1:
+            #print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<weird"
             # Find the next marker based on new marker
             found=0
             for m in markers:
@@ -185,10 +183,11 @@ while True:
                     markers.remove(m)
                     found=1
             if found==0:
-                print "error, no matvhes"
+                print "error, no matches"
         elif len(matches) == 0:
-            print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>no matches"
-            qr_list.append(PartialQR(mrk, None, None))
+            n=0
+            #print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>no matches"
+            #qr_list.append(PartialQR(mrk, None, None))
 
     cv2.imshow("screen", frame_orig)
 
