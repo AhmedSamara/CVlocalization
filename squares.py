@@ -14,24 +14,41 @@ def find_center(cnt):
 def distance(a, b):
    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
+THRESH_X = 0.5
+THRESH_Y = 0.5
+
+Y_DIST = 2.5
+X_DIST = 2.5
+
 def same_qr(marker1, marker2):
     """Checks to see if markers are on same qr.
     """
     # Assume that both markers are roughly similair size
     dist = distance(marker1.center, marker2.center)     
-    height = (marker1.height + marker2.height)/2
-    width  = (marker1.width + marker2.width)/2    
+    height = marker1.height 
+    width  = marker1.width 
 
-    dx = abs(marker1.x - marker2.x)
+    dx = abs(marker1.x - marker2.x) 
     dy = abs(marker1.y - marker2.y)
     
     print "width: ", width 
-    print "dx: ", dx
-    #markers are expected to be 1.5 marker lengths apart
-    if (dx < 2.5 * width and dx > 0.9 * width):
+    print "d-width: ", dx  
+    #markers are expected to be 2.5 marker lengths apart
+    # marker is on same Y, but 
+    
+    #check that y displacement is in correct range
+    vert_range = abs( dy - Y_DIST) > THRESH_Y
+    horiz_range = abs(dx - X_DIST) > THRESH_X
+    
+    # marker is diagonal from current
+    if vert_range and horiz_range:
         return True
-    if (dy < 2.5 * height and dy > 0.9 * height):
+    #vertical from current
+    elif vert_range and not horiz_range:
         return True
+    elif not vert_range and horiz_range:
+        return True
+    
     return False
 
 #idk if we should use this
