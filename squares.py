@@ -47,6 +47,9 @@ def same_qr(marker1, marker2):
         return True
     elif not vert_range and horiz_range:
         return True
+
+    elif not vert_range and not horiz_range:
+        return False
     
     return False
 
@@ -108,9 +111,12 @@ def is_marker(contour):
 
 def find_matching_marker(marker, marker_list):
     """finds all markers in the same list."""
-    marker_list.remove(marker)
-
-    matches = [m for m in marker_list if same_qr(marker, m)]
+    
+    m_list = list(marker_list)
+    
+    
+    m_list.remove(marker)
+    matches = [m for m in m_list if same_qr(marker, m)]
     return matches
         
 
