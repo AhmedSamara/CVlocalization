@@ -18,8 +18,8 @@ def distance(a, b):
 THRESH_X = 0.5
 THRESH_Y = 0.5
 
-Y_DIST = 2.5
-X_DIST = 2.5
+Y_DIST = 2
+X_DIST = 2
 
 def same_qr(marker1, marker2):
     """Checks to see if markers are on same qr.
@@ -36,8 +36,8 @@ def same_qr(marker1, marker2):
     # marker is on same Y, but 
     
     #check that y displacement is in correct range
-    vert_range = abs( dy - Y_DIST) > THRESH_Y
-    horiz_range = abs(dx - X_DIST) > THRESH_X
+    vert_range = abs(dy/height - Y_DIST) > THRESH_Y
+    horiz_range = abs(dx/width - X_DIST) > THRESH_X
     
     # marker is diagonal from current
     if vert_range and horiz_range:
