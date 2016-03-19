@@ -15,39 +15,23 @@ red    = cv2.imread('red.png')
 green  = cv2.imread('green.png')
 
 color_qrs = [blue, yellow, red, green]
-qr_surf = []
-
-
-k_blue, blue_des = surf.detectAndCompute(blue, None)
-
 # matcher object
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
 
-cam_matrix = np.zeros((3,3), np.float32)
-distcoeffs = np.zeros((1,5), np.float32)
+rk, rdes = surf.detectAndCompute(red, None)
+bk, bdes = surf.detectAndCompute(blue, None)
+yk, ydes = surf.detectAndCompute(yellow, None)
+gk, gdes = surf.detectAndCompute(green, None)
 
-cam_matrix[0,0] = 1.9961704327353971e+03
-cam_matrix[0,1] = 0.0
-cam_matrix[0,2] = 3.1950000000000000e+02
-cam_matrix[1,0] = 0 
-cam_matrix[1,1] = 1.9961704327353971e+03
-cam_matrix[1,2] = 2.3950000000000000e+02
-cam_matrix[2,0] = 0
-cam_matrix[2,1] = 0
-cam_matrix[2,2] = 1
+print "red:    ", len(rk)
+print "blue:   ", len(bk)
+print "yellow: ", len(yk)
+print "green:  ", len(gk)
 
-distcoeffs[0,0] = 1.8175523764227883e+00
-distcoeffs[0,1] = -8.7919484257162480e+01
-distcoeffs[0,2] = 0.
-distcoeffs[0,3] = 0.
-distcoeffs[0,4] = 1.2459859993672681e+03
 
-rvec = np.zeros((3,1), np.float32)
-tvec = np.zeros((3,1), np.float32)
 
-dc = np.zeros(4)
-
+"""
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
@@ -72,3 +56,4 @@ while True:
 # When everything done, release the capture
 cap.release()
 cv2.destroyAllWindows()
+"""

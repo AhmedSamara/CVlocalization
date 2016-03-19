@@ -15,11 +15,11 @@ def find_center(cnt):
 def distance(a, b):
    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
-THRESH_X = 0.5
-THRESH_Y = 0.5
+THRESH_X = 1.0 
+THRESH_Y = 1.0
 
-Y_DIST = 2
-X_DIST = 2
+Y_DIST = 2.5
+X_DIST = 2.5
 
 def same_qr(marker1, marker2):
     """Checks to see if markers are on same qr.
@@ -34,10 +34,15 @@ def same_qr(marker1, marker2):
     
     #markers are expected to be 2.5 marker lengths apart
     # marker is on same Y, but 
-    
+    #print "dy:     ", dy
+    #print "height: ", height
+    #print ""
+    print "dx:    ", dx
+    print "width: ", width
+
     #check that y displacement is in correct range
-    vert_range = abs(dy/height - Y_DIST) > THRESH_Y
-    horiz_range = abs(dx/width - X_DIST) > THRESH_X
+    vert_range = abs(dy/height - Y_DIST) < THRESH_Y
+    horiz_range = abs(dx/width - X_DIST) < THRESH_X
     
     # marker is diagonal from current
     if vert_range and horiz_range:
@@ -81,7 +86,26 @@ class PartialQR(object):
         self.marker3 = c
 
 
-def is_marker(contour):
+def find_markers(contours, hierarchy):
+    #technique borrowed form dysnflow
+    # find contours with 3 children
+    marker_list = []
+    for i in range(len(contours)):
+        k = i
+        children = 0
+
+        while hierarchy[0][k][2] != -1:
+            k = hierarchy[0][k][2]
+            children += 1
+        if hierarchy[0][k][2] != -1:
+            children += 1
+    
+        if children >= 5:
+            marker_list.append(Marker(contours[i]))
+    return marker_list
+
+
+def is_marker(contour, cnt_fam):
 
     peri = cv2.arcLength(contour, True)
     approx = cv2.approxPolyDP(contour, 0.02*peri, True)
@@ -92,18 +116,30 @@ def is_marker(contour):
 
 
         # find areas
-        area = cv2.contourArea(c)
-        hullArea = cv2.contourArea(cv2.convexHull(c))
+        area = cv2.contourArea(contour)
+        hullArea = cv2.contourArea(cv2.convexHull(contour))
 
         #cv2.drawContours(frame, [cv2.convexHull(c)], 0, (0,0,255),2)
         solidity = area / float(hullArea)
 
         keepSolidity = solidity > 0.9
-        keepAspectRatio = (aspectRatio >= 0.8 and aspectRatio <= 1.2 ) \
+        keepAspectRatio = (aspectRatio >= 0.8 and aspectRatio <= 1.2 )
 
-        keepSize = cv2.arcLength(c, True) > 60
+        keepSize = cv2.arcLength(contour, True) > 60
 
-        if keepSolidity and keepAspectRatio and keepSize:
+        # Check that it has children. (-1 if none)
+        # form: [next, previous, child, parent]
+        hasChild = cnt_fam[2] != -1
+
+
+        # assume global vars i, contours, hierarchy
+        if hasChild:
+            while True:
+                next_child = hierarchy[0][i][2]
+            
+                
+
+        if keepSolidity and keepAspectRatio and keepSize and hasChild:
             return True
         else:
             return False
@@ -116,7 +152,13 @@ def find_matching_marker(marker, marker_list):
     
     
     m_list.remove(marker)
-    matches = [m for m in m_list if same_qr(marker, m)]
+    
+    #matches = [m for m in m_list if same_qr(marker, m)]
+    matches = []
+    for m in m_list:
+        if same_qr(marker, m):
+            matches.append(m)
+    
     return matches
         
 
@@ -138,15 +180,22 @@ while True:
 
     cv2.imshow('edge', frame)
 
-    (cnts,_) = cv2.findContours(frame.copy(), cv2.RETR_EXTERNAL,
-                                    cv2.CHAIN_APPROX_SIMPLE)
-
-
+    (cnts, hierarchy) = cv2.findContours(frame.copy()
+                                        , cv2.RETR_TREE
+                                        , cv2.CHAIN_APPROX_SIMPLE)
+   
     # This is the pythonic way I swear
-    markers = [Marker(c) for c in cnts if is_marker(c)]
+    #markers = [Marker(c) for c in cnts if is_marker(c)]
+    #markers = []
+    #for i in range(len(cnts)):
+    #    # examine both contour and hierarchy val
+    #    if is_marker(cnts[i], hierarchy[0][i]):
+    #        markers.append(Marker(cnts[i]))
 
-    cv2.drawContours(frame_orig, [m.contour for m in markers], -1, (0,255,0))
+    #cv2.drawContours(frame_orig, [m.contour for m in markers]
+    #                    , -1, (0,255,0))
 
+    markers = find_markers(cnts, hierarchy)
     # Sort Markers by Y axis
     markers.sort(key=lambda x: x.y)
     
