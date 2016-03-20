@@ -93,19 +93,25 @@ def find_markers(contours, hierarchy):
     for i in range(len(contours)):
         k = i
         children = 0
+        if not is_square(contours[i]):
+            continue
 
+        # Iterate until pointing to a contour with no children
         while hierarchy[0][k][2] != -1:
             k = hierarchy[0][k][2]
             children += 1
-        if hierarchy[0][k][2] != -1:
-            children += 1
-    
-        if children >= 5:
+ 
+        if children > 3:
+            # castrate all parents before going back
+            while k != i:
+                hierarchy[0][k][2] = -1
+                k = hierarchy[0][k][3]
+                
             marker_list.append(Marker(contours[i]))
     return marker_list
 
 
-def is_marker(contour, cnt_fam):
+def is_square(contour):
 
     peri = cv2.arcLength(contour, True)
     approx = cv2.approxPolyDP(contour, 0.02*peri, True)
@@ -129,17 +135,8 @@ def is_marker(contour, cnt_fam):
 
         # Check that it has children. (-1 if none)
         # form: [next, previous, child, parent]
-        hasChild = cnt_fam[2] != -1
 
-
-        # assume global vars i, contours, hierarchy
-        if hasChild:
-            while True:
-                next_child = hierarchy[0][i][2]
-            
-                
-
-        if keepSolidity and keepAspectRatio and keepSize and hasChild:
+        if keepSolidity and keepAspectRatio and keepSize:
             return True
         else:
             return False
@@ -191,14 +188,15 @@ while True:
     #    # examine both contour and hierarchy val
     #    if is_marker(cnts[i], hierarchy[0][i]):
     #        markers.append(Marker(cnts[i]))
-
-    #cv2.drawContours(frame_orig, [m.contour for m in markers]
-    #                    , -1, (0,255,0))
-
     markers = find_markers(cnts, hierarchy)
     # Sort Markers by Y axis
     markers.sort(key=lambda x: x.y)
-    
+
+    cv2.drawContours(frame_orig, [m.contour for m in markers]
+                        , -1, (0,255,0))
+
+   
+     
     # Number squares by height
     #i=0
     #for mrk in markers:
