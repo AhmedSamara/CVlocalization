@@ -34,8 +34,8 @@ def same_qr(marker1, marker2):
         return False
     
     dist = distance(marker1.center, marker2.center)     
-    height = float(marker1.height)
-    width  = float(marker1.width)
+    height = float(max([marker1.height, marker2.height]))
+    width  = float(max([marker1.width, marker2.width]))
 
     dx = abs(marker1.x - marker2.x) 
     dy = abs(marker1.y - marker2.y)
@@ -118,12 +118,12 @@ def find_markers(contours, hierarchy):
             children += 1
  
         if children > 3 or (children >= 1 and is_square(contours[i])):
-            # castrate all parents before going back
-            while k != -1:
+            # castrate all parents, and find highest parent
+            while hierarchy[0][k][3] != -1:
                 hierarchy[0][k][2] = -1
                 k = hierarchy[0][k][3]
-                
-            marker_list.append(Marker(contours[i]))
+
+            marker_list.append(Marker(contours[k]))
     return marker_list
 
 
