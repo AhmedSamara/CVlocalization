@@ -123,7 +123,7 @@ def find_markers(contours, hierarchy):
                 hierarchy[0][k][2] = -1
                 k = hierarchy[0][k][3]
                 
-            marker_list.append(Marker(contours[k]))
+            marker_list.append(Marker(contours[i]))
     return marker_list
 
 
