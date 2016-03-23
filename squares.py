@@ -63,14 +63,6 @@ def same_qr(marker1, marker2):
     # marker is diagonal from current
     if vert_range and horiz_range:
         return True
-    #vertical from current
-    elif vert_range and not horiz_range:
-        return False
-    elif not vert_range and horiz_range:
-        return False
-
-    elif not vert_range and not horiz_range:
-        return False
     
     return False
 
