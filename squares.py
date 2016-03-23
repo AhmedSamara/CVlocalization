@@ -118,12 +118,22 @@ def find_markers(contours, hierarchy):
             children += 1
  
         if children > 3 or (children >= 1 and is_square(contours[i])):
-            # castrate all parents, and find highest parent
-            while hierarchy[0][k][3] != -1:
-                hierarchy[0][k][2] = -1
-                k = hierarchy[0][k][3]
 
-            marker_list.append(Marker(contours[k]))
+            #castrate all children
+            j = i
+            while hierarchy[0][j][2] != -1:
+                buff = j
+                #point to next child
+                j = hierarchy[0][j][2] 
+                # castrate current child
+                hierarchy[0][buff][2] = -1
+            # find highest parent, castrate along the way.
+            j = i
+            while hierarchy[0][j][3] != -1:
+                hierarchy[0][j][2] = -1
+                j = hierarchy[0][j][3]
+
+            marker_list.append(Marker(contours[j]))
     return marker_list
 
 
