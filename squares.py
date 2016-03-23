@@ -218,14 +218,12 @@ while True:
         # Should return 2 markers if it's the corner one (both other markers are across)
         # only one otherwise.
         matches = [m for m in markers if same_qr(mrk, m)]
+        
         #print "before"
         #print matches
        
         for mtch in matches:
-            for m in markers:
-                if mtch is m:
-                    print ">>>>>>>>>>>>>>>>>>>>>>"
-                    markers.remove(m)
+            markers.remove(mtch)
           
         #print "after"
         #print matches 
