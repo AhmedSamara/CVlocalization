@@ -15,11 +15,11 @@ def find_center(cnt):
 def distance(a, b):
    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
-THRESH_X = 1.0 
-THRESH_Y = 1.0
+THRESH_X = 1.5 
+THRESH_Y = 1.5
 
-Y_DIST = 2.5
-X_DIST = 2.5
+Y_DIST = 2.0
+X_DIST = 2.0
 
 def same_qr(marker1, marker2):
     """Checks to see if markers are on same qr.
@@ -93,15 +93,15 @@ def find_markers(contours, hierarchy):
     for i in range(len(contours)):
         k = i
         children = 0
-        if not is_square(contours[i]):
-            continue
+        #if not is_square(contours[i]):
+        #    continue
 
         # Iterate until pointing to a contour with no children
         while hierarchy[0][k][2] != -1:
             k = hierarchy[0][k][2]
             children += 1
  
-        if children > 3:
+        if children > 3 or (children >= 1 and is_square(contours[i])):
             # castrate all parents before going back
             while k != i:
                 hierarchy[0][k][2] = -1
@@ -167,7 +167,7 @@ while True:
     frame_orig = frame
 
     # gray and blur
-    frame = cv2.GaussianBlur(frame,(5,5),0)
+    frame = cv2.GaussianBlur(frame,(0,0),3)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 2)
     #frame = cv2.adaptiveThreshold(frame ,255  
@@ -181,7 +181,6 @@ while True:
                                         , cv2.RETR_TREE
                                         , cv2.CHAIN_APPROX_SIMPLE)
    
-    # This is the pythonic way I swear
     #markers = [Marker(c) for c in cnts if is_marker(c)]
     #markers = []
     #for i in range(len(cnts)):
@@ -189,6 +188,7 @@ while True:
     #    if is_marker(cnts[i], hierarchy[0][i]):
     #        markers.append(Marker(cnts[i]))
     markers = find_markers(cnts, hierarchy)
+
     # Sort Markers by Y axis
     markers.sort(key=lambda x: x.y)
 
@@ -208,23 +208,39 @@ while True:
     qr_list = []
     for mrk in markers:
         # Exclude current from search.
+        print "before"
+        print markers
         markers.remove(mrk)
+        print "after"
+        print markers
 
         # Search for matching markers.
         # Should return 2 markers if it's the corner one (both other markers are across)
         # only one otherwise.
         matches = [m for m in markers if same_qr(mrk, m)]
-        for m in matches:
-            markers.remove(m)    
+        #print "before"
+        #print matches
+       
+        for mtch in matches:
+            for m in markers:
+                if mtch is m:
+                    print ">>>>>>>>>>>>>>>>>>>>>>"
+                    markers.remove(m)
+          
+        #print "after"
+        #print matches 
+
         if len(matches) > 2:
             #print "error: too many matches"
-            n =0
+            n = 0
         elif len(matches) == 2:
             qr_list.append(PartialQR(mrk, matches[0], matches[1]))
             
             t = np.array([mrk.center, 
                           matches[0].center, 
                           matches[1].center])
+                        #markers.remove(matches[0])
+            #markers.remove(matches[1])
             cv2.fillConvexPoly(frame_orig, t, (0,0,255))
         elif len(matches) == 1:
             #print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<weird"
@@ -232,6 +248,7 @@ while True:
             found=0
             for m in markers:
                 if same_qr(matches[0], m):
+                    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
                     matches.append(m)
                     markers.remove(m)
                     found=1
@@ -241,6 +258,7 @@ while True:
             n=0
             #print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>no matches"
             #qr_list.append(PartialQR(mrk, None, None))
+
 
     cv2.imshow("screen", frame_orig)
 
