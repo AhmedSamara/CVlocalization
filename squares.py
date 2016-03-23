@@ -21,13 +21,21 @@ THRESH_Y = 1.5
 Y_DIST = 2.0
 X_DIST = 2.0
 
+X_RATIO = 2.0
+Y_RATIO = 2.0
+
 def same_qr(marker1, marker2):
     """Checks to see if markers are on same qr.
     """
     # Assume that both markers are roughly similair size
+    # height should be same if they're the same QR
+    ratio = marker1.height/marker2.height    
+    if ratio > 1.1 or ratio < 0.9:
+        return False
+    
     dist = distance(marker1.center, marker2.center)     
-    height = marker1.height 
-    width  = marker1.width 
+    height = float(marker1.height)
+    width  = float(marker1.width)
 
     dx = abs(marker1.x - marker2.x) 
     dy = abs(marker1.y - marker2.y)
@@ -37,12 +45,20 @@ def same_qr(marker1, marker2):
     #print "dy:     ", dy
     #print "height: ", height
     #print ""
+    #print "dx:    ", dx
+    #print "width: ", width
+
     print "dx:    ", dx
     print "width: ", width
+    print "x ratio: ", dx/width
 
     #check that y displacement is in correct range
-    vert_range = abs(dy/height - Y_DIST) < THRESH_Y
-    horiz_range = abs(dx/width - X_DIST) < THRESH_X
+    #vert_range = abs(dy/height - Y_DIST) < THRESH_Y
+    #horiz_range = abs(dx/width - X_DIST) < THRESH_X
+    
+    vert_range  = float(abs(dy/height )) <= 2.5
+    horiz_range = float(abs(dx/width )) <= 2.5
+    
     
     # marker is diagonal from current
     if vert_range and horiz_range:
@@ -103,11 +119,11 @@ def find_markers(contours, hierarchy):
  
         if children > 3 or (children >= 1 and is_square(contours[i])):
             # castrate all parents before going back
-            while k != i:
+            while k != -1:
                 hierarchy[0][k][2] = -1
                 k = hierarchy[0][k][3]
                 
-            marker_list.append(Marker(contours[i]))
+            marker_list.append(Marker(contours[k]))
     return marker_list
 
 
@@ -208,11 +224,11 @@ while True:
     qr_list = []
     for mrk in markers:
         # Exclude current from search.
-        print "before"
-        print markers
+        #print "before"
+        #print markers
         markers.remove(mrk)
-        print "after"
-        print markers
+        #print "after"
+        #print markers
 
         # Search for matching markers.
         # Should return 2 markers if it's the corner one (both other markers are across)
