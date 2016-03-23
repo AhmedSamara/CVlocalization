@@ -30,7 +30,7 @@ def same_qr(marker1, marker2):
     # Assume that both markers are roughly similair size
     # height should be same if they're the same QR
     ratio = marker1.height/marker2.height    
-    if ratio > 1.1 or ratio < 0.9:
+    if ratio > 1.2 or ratio < 0.8:
         return False
     
     dist = distance(marker1.center, marker2.center)     
@@ -56,8 +56,8 @@ def same_qr(marker1, marker2):
     #vert_range = abs(dy/height - Y_DIST) < THRESH_Y
     #horiz_range = abs(dx/width - X_DIST) < THRESH_X
     
-    vert_range  = float(abs(dy/height )) <= 2.5
-    horiz_range = float(abs(dx/width )) <= 2.5
+    vert_range  = float(abs(dy/height )) <= 2.3
+    horiz_range = float(abs(dx/width )) <= 2.3
     
     
     # marker is diagonal from current
@@ -65,9 +65,9 @@ def same_qr(marker1, marker2):
         return True
     #vertical from current
     elif vert_range and not horiz_range:
-        return True
+        return False
     elif not vert_range and horiz_range:
-        return True
+        return False
 
     elif not vert_range and not horiz_range:
         return False
@@ -156,7 +156,13 @@ def is_square(contour):
             return True
         else:
             return False
- 
+
+def largest_edge(mark):
+    if (mark.width > mark.height):
+        return mark.width
+    else:
+        return mark.height
+    
 
 def find_matching_marker(marker, marker_list):
     """finds all markers in the same list."""
@@ -206,7 +212,9 @@ while True:
     markers = find_markers(cnts, hierarchy)
 
     # Sort Markers by Y axis
-    markers.sort(key=lambda x: x.y)
+    markers.sort(key=lambda x: largest_edge(x), reverse = True)
+    
+    
 
     cv2.drawContours(frame_orig, [m.contour for m in markers]
                         , -1, (0,255,0))

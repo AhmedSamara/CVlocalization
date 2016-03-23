@@ -134,7 +134,7 @@ def check_color(hopper_pos):
     
     
     
-cap = cv2.VideoCapture(-1)
+cap = cv2.VideoCapture(1)
 x = int(cap.get(3))
 y = int(cap.get(4))
 
