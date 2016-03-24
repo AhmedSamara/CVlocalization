@@ -165,6 +165,29 @@ def find_matching_marker(marker, marker_list):
     
     return matches
         
+    
+def partial_center(pqr):
+    #find average length
+    avg_length = int((pqr.marker1.length + pqr.marker2.length + pqr.marker3.length)/3)
+    if abs(pqr.marker1.x -pqr.marker2.x) >= (1.5 * avg_length):
+        center_x = int((pqr.marker1.x + pqr.marker2.x)/2)
+    elif abs(pqr.marker1.x -pqr.marker3.x) >= (1.5 * avg_length):
+        center_x = int((pqr.marker1.x + pqr.marker3.x)/2)
+    elif abs(pqr.marker2.x -pqr.marker3.x) >= (1.5 * avg_length):
+        center_x = int((pqr.marker2.x + pqr.marker3.x)/2)
+    else:
+        center_x = int((pqr.marker1.x + pqr.marker2.x + pqr.marker3.x)/2)
+        
+    if abs(pqr.marker1.y -pqr.marker2.y) >= (1.5 * avg_length):
+        center_y = int((pqr.marker1.y + pqr.marker2.y)/2)
+    elif abs(pqr.marker1.y -pqr.marker3.y) >= (1.5 * avg_length):
+        center_y = int((pqr.marker1.y + pqr.marker3.y)/2)
+    elif abs(pqr.marker2.y -pqr.marker3.y) >= (1.5 * avg_length):
+        center_y = int((pqr.marker2.y + pqr.marker3.y)/2)
+    else:
+        center_y = int((pqr.marker1.y + pqr.marker2.y + pqr.marker3.y)/2)
+        
+    return center_x, center_y
 
 
 while True:
@@ -225,7 +248,11 @@ while True:
                 print "error, no matches"
         elif len(matches) == 0:
             n=0
-
+    
+    for qr in qr_list:
+        x,y = partial_center(qr)
+        cv2.circle(frame_orig,(x,y),5,(255,255,255))
+    
     cv2.imshow("screen", frame_orig)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
