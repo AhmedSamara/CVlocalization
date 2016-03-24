@@ -27,11 +27,6 @@ Y_RATIO = 2.0
 def same_qr(marker1, marker2):
     """Checks to see if markers are on same qr.
     """
-    # Assume that both markers are roughly similair size
-    # height should be same if they're the same QR
-    #ratio = marker1.height/marker2.height    
-    #if ratio > 1.2 or ratio < 0.8:
-    #    return False
     
     dist = distance(marker1.center, marker2.center)     
     height = float(max([marker1.height, marker2.height]))
@@ -39,26 +34,6 @@ def same_qr(marker1, marker2):
 
     dx = abs(marker1.x - marker2.x) 
     dy = abs(marker1.y - marker2.y)
-    
-    #markers are expected to be 2.5 marker lengths apart
-    # marker is on same Y, but 
-    #print "dy:     ", dy
-    #print "height: ", height
-    #print ""
-    #print "dx:    ", dx
-    #print "width: ", width
-
-    print "dx:    ", dx
-    print "width: ", width
-    print "x ratio: ", dx/width
-    
-    print "dy:     ", dy
-    print "height: ", height
-    print "y ratio: ", dy/height
-
-    #check that y displacement is in correct range
-    #vert_range = abs(dy/height - Y_DIST) < THRESH_Y
-    #horiz_range = abs(dx/width - X_DIST) < THRESH_X
     
     vert_upper_range  = 1.5 <= float(abs(dy/height )) <= 2.5
     horiz_upper_range = 1.5 <= float(abs(dx/width )) <= 2.5
@@ -112,8 +87,6 @@ def find_markers(contours, hierarchy):
     for i in range(len(contours)):
         k = i
         children = 0
-        #if not is_square(contours[i]):
-        #    continue
 
         # Iterate until pointing to a contour with no children
         while hierarchy[0][k][2] != -1:
@@ -154,7 +127,6 @@ def is_square(contour):
         area = cv2.contourArea(contour)
         hullArea = cv2.contourArea(cv2.convexHull(contour))
 
-        #cv2.drawContours(frame, [cv2.convexHull(c)], 0, (0,0,255),2)
         solidity = area / float(hullArea)
 
         keepSolidity = solidity > 0.9
@@ -205,8 +177,6 @@ while True:
     frame = cv2.GaussianBlur(frame,(0,0),3)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame = cv2.adaptiveThreshold(frame, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 9, 2)
-    #frame = cv2.adaptiveThreshold(frame ,255  
-    #        , cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,2)
 
     frame = cv2.Canny(frame, 50, 150)
 
@@ -215,13 +185,7 @@ while True:
     (cnts, hierarchy) = cv2.findContours(frame.copy()
                                         , cv2.RETR_TREE
                                         , cv2.CHAIN_APPROX_SIMPLE)
-   
-    #markers = [Marker(c) for c in cnts if is_marker(c)]
-    #markers = []
-    #for i in range(len(cnts)):
-    #    # examine both contour and hierarchy val
-    #    if is_marker(cnts[i], hierarchy[0][i]):
-    #        markers.append(Marker(cnts[i]))
+
     markers = find_markers(cnts, hierarchy)
 
     # Sort Markers by Y axis
@@ -232,42 +196,14 @@ while True:
     cv2.drawContours(frame_orig, [m.contour for m in markers]
                         , -1, (0,255,0))
 
-   
-     
-    # Number squares by height
-    #i=0
-    #for mrk in markers:
-    #    cv2.circle(frame_orig, mrk.center, 5, (100,255,0))
-    #    cv2.putText(frame_orig, str(i), mrk.center, cv2.FONT_HERSHEY_PLAIN,1.0, (255,100,55))
-    #    i += 1
- 
-    
     qr_list = []
     for mrk in markers:
-        # Exclude current from search.
-        #print "before"
-        #print markers
         markers.remove(mrk)
-        #print "after"
-        #print markers
-
-        # Search for matching markers.
-        # Should return 2 markers if it's the corner one (both other markers are across)
-        # only one otherwise.
-        print "============================================================"
         matches = [m for m in markers if same_qr(mrk, m)]
-        
-        #print "before"
-        #print matches
-       
         for mtch in matches:
             markers.remove(mtch)
-          
-        #print "after"
-        #print matches 
 
         if len(matches) > 2:
-            #print "error: too many matches"
             n = 0
         elif len(matches) == 2:
             qr_list.append(PartialQR(mrk, matches[0], matches[1]))
@@ -275,8 +211,6 @@ while True:
             t = np.array([mrk.center, 
                           matches[0].center, 
                           matches[1].center])
-                        #markers.remove(matches[0])
-            #markers.remove(matches[1])
             cv2.fillConvexPoly(frame_orig, t, (0,0,255))
         elif len(matches) == 1:
             print "Only one match"
@@ -291,9 +225,6 @@ while True:
                 print "error, no matches"
         elif len(matches) == 0:
             n=0
-            #print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>no matches"
-            #qr_list.append(PartialQR(mrk, None, None))
-
 
     cv2.imshow("screen", frame_orig)
 
