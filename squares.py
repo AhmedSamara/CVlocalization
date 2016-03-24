@@ -29,9 +29,9 @@ def same_qr(marker1, marker2):
     """
     # Assume that both markers are roughly similair size
     # height should be same if they're the same QR
-    ratio = marker1.height/marker2.height    
-    if ratio > 1.2 or ratio < 0.8:
-        return False
+    #ratio = marker1.height/marker2.height    
+    #if ratio > 1.2 or ratio < 0.8:
+    #    return False
     
     dist = distance(marker1.center, marker2.center)     
     height = float(max([marker1.height, marker2.height]))
@@ -51,20 +51,31 @@ def same_qr(marker1, marker2):
     print "dx:    ", dx
     print "width: ", width
     print "x ratio: ", dx/width
+    
+    print "dy:     ", dy
+    print "height: ", height
+    print "y ratio: ", dy/height
 
     #check that y displacement is in correct range
     #vert_range = abs(dy/height - Y_DIST) < THRESH_Y
     #horiz_range = abs(dx/width - X_DIST) < THRESH_X
     
-    vert_range  = float(abs(dy/height )) <= 2.3
-    horiz_range = float(abs(dx/width )) <= 2.3
+    vert_upper_range  = 1.5 <= float(abs(dy/height )) <= 2.5
+    horiz_upper_range = 1.5 <= float(abs(dx/width )) <= 2.5
+    
+    vert_lower_range = 0 <= float(abs(dy/height )) <= .5
+    horiz_lower_range = 0 <= float(abs(dx/width )) <= .5
     
     
-    # marker is diagonal from current
-    if vert_range and horiz_range:
+    #truth table:
+    if (vert_upper_range and horiz_lower_range):
         return True
-    
-    return False
+    elif (horiz_upper_range and vert_lower_range):
+        return True
+    elif (horiz_upper_range and vert_upper_range):
+        return True
+    else:
+        return False
 
 #idk if we should use this
 class Marker(object):
@@ -243,6 +254,7 @@ while True:
         # Search for matching markers.
         # Should return 2 markers if it's the corner one (both other markers are across)
         # only one otherwise.
+        print "============================================================"
         matches = [m for m in markers if same_qr(mrk, m)]
         
         #print "before"
@@ -267,12 +279,11 @@ while True:
             #markers.remove(matches[1])
             cv2.fillConvexPoly(frame_orig, t, (0,0,255))
         elif len(matches) == 1:
-            #print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<weird"
+            print "Only one match"
             # Find the next marker based on new marker
             found=0
             for m in markers:
                 if same_qr(matches[0], m):
-                    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
                     matches.append(m)
                     markers.remove(m)
                     found=1
