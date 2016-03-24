@@ -10,11 +10,21 @@ class block:
         self.color = color
 
 def enhance_color(bgr):
-    #enhance the image with gaussian and color
-    bgr2 = cv2.GaussianBlur(bgr,(9,9),0)
-    rgb = cv2.cvtColor(bgr2,cv2.COLOR_BGR2RGB)
+    
+    size = 320,240
+    #crop and enhance the image for color
+    rgb = cv2.cvtColor(bgr,cv2.COLOR_BGR2RGB)
+    
     pil_im = Image.fromarray(rgb)
-    converter = ImageEnhance.Color(pil_im)
+    
+    pil_im.thumbnail(size, Image.ANTIALIAS)
+    
+    w, h = pil_im.size
+    w_3 = int(w/3)
+    h_6 = int(w/6)
+    
+    pil_cropped = pil_im.crop((w_3,h_6,w-w_3, h- h_6))
+    converter = ImageEnhance.Color(pil_cropped)
     enhanced = converter.enhance(3.0)
     pil_image = enhanced.convert('RGB') 
     open_cv_image = np.array(pil_image)
@@ -64,15 +74,6 @@ def check_color(hopper_pos):
     cap.grab()
     ret, bgr = cap.read()
     
-    #crop the image
-    for x_val in range(0,x_third):
-        for y_val in range(0,y):
-            bgr[y_val, x_val] = [0,0,0]
-            
-    for x_val in range(x - x_third,x):
-        for y_val in range(0,y):
-            bgr[y_val, x_val] = [0,0,0]
-    
     #enhance and show the image with gaussian and color
     bgr_enhanced = enhance_color(bgr)
     cv2.imshow("enhanced",bgr_enhanced)
@@ -96,7 +97,7 @@ def check_color(hopper_pos):
 
         # find the colors within the specified boundaries and apply the mask
         mask = cv2.inRange(bgr_enhanced, lower, upper)
-        mask = cv2.erode(mask, None, iterations=15)
+        mask = cv2.erode(mask, None, iterations=10)
         output = cv2.dilate(mask, None, iterations=5)
          
         #find contours of the masked output
@@ -114,16 +115,8 @@ def check_color(hopper_pos):
             center = find_center(contour)
             cv2.circle(output, center, 5, (0,0,255), -1) 
             cnt += 1
-        
-        #if count == 3:
-        #    cv2.imshow("green",output)
-        #    if cv2.waitKey(1) & 0xFF == ord('q'):
-        #        return None
             
         count += 1
-        
-    #arm.hopper[hopper_pos].data = largest.color
-    
     return largest
     
     
@@ -134,7 +127,7 @@ def check_color(hopper_pos):
     
     
     
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(-1)
 x = int(cap.get(3))
 y = int(cap.get(4))
 
