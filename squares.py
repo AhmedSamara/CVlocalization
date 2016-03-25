@@ -1,5 +1,7 @@
 from math import sqrt
 import cv2
+import objgraph
+
 import numpy as np
 
 cap = cv2.VideoCapture(0)
@@ -14,6 +16,17 @@ def find_center(cnt):
 
 def distance(a, b):
    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+
+def create_mask(marker, cam):
+    op = (0,0)
+    op[0] = 15 + marker.x
+    op[1] = 15 + marker.y
+    (mx, my), mr = cv2.minEnclosingCircle(op + marker.center)
+    width  = cam.get(3)
+    height = cam.get(4)
+    
+    #create blank image
+    black_im = np.zeros((height, width, 3), np.uint8)
 
 THRESH_X = 1.5 
 THRESH_Y = 1.5
@@ -67,7 +80,7 @@ class Marker(object):
         self.approx = cv2.approxPolyDP(contour, 0.02*peri, True)
 
         #optimize
-        (rx, ry, w, h) = cv2.boundingRect(self.approx) 
+        (self.rx, self.ry, w, h) = cv2.boundingRect(self.approx) 
         self.width = w
         self.height = h
         self.length = (w + h)/2
@@ -254,6 +267,8 @@ while True:
         cv2.circle(frame_orig,(x,y),5,(255,255,255))
     
     cv2.imshow("screen", frame_orig)
+
+    objgraph.show_most_common_types()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
