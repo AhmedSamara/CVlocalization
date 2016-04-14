@@ -1,6 +1,5 @@
 from math import sqrt
 import cv2
-import objgraph
 
 import numpy as np
 
@@ -17,16 +16,29 @@ def find_center(cnt):
 def distance(a, b):
    return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
-def create_mask(marker, cam):
-    op = (0,0)
-    op[0] = 15 + marker.x
-    op[1] = 15 + marker.y
-    (mx, my), mr = cv2.minEnclosingCircle(op + marker.center)
+def circle_mask(frame, marker, cam):
+    x = int(15 + marker.x)
+    y = int(15 + marker.y)
+    op = (x, y)
+
+   
     width  = cam.get(3)
     height = cam.get(4)
     
     #create blank image
-    black_im = np.zeros((height, width, 3), np.uint8)
+    mask = np.zeros((height, width, 3), np.uint8)
+    # draw white circle
+    print op
+    print marker.center
+    print [[[op, marker.center]]]
+    (x,y), r = cv2.minEnclosingCircle(np.array([op, marker.center]
+                                                , np.int32))
+    cv2.circle(mask, (x,y), r, (255,255,255), 1)
+
+    
+ 
+    return result
+
 
 THRESH_X = 1.5 
 THRESH_Y = 1.5
@@ -217,12 +229,19 @@ while True:
     frame = cv2.Canny(frame, 50, 150)
 
     cv2.imshow('edge', frame)
-
+    
+   
     (cnts, hierarchy) = cv2.findContours(frame.copy()
                                         , cv2.RETR_TREE
                                         , cv2.CHAIN_APPROX_SIMPLE)
 
+    print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+    print "cnts"
+    print cnts[0]
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+
     markers = find_markers(cnts, hierarchy)
+
 
     # Sort Markers by Y axis
     markers.sort(key=lambda x: largest_edge(x), reverse = True)
@@ -233,6 +252,10 @@ while True:
                         , -1, (0,255,0))
 
     qr_list = []
+
+    if len(markers) > 0:
+        mask = circle_mask(frame, markers[0], cap)
+        cv2.imshow('mask', mask)
     for mrk in markers:
         markers.remove(mrk)
         matches = [m for m in markers if same_qr(mrk, m)]
@@ -267,8 +290,6 @@ while True:
         cv2.circle(frame_orig,(x,y),5,(255,255,255))
     
     cv2.imshow("screen", frame_orig)
-
-    objgraph.show_most_common_types()
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

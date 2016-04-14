@@ -76,7 +76,6 @@ while True:
     ret, frame = cam.read()
 
     # grayscale
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     #ret, frame = cv2.threshold(gray, 127, 255, 0)
     
     cv2.imshow('before filter', frame)
@@ -85,9 +84,10 @@ while True:
 
     frame = cv2.GaussianBlur(frame, (5,5), 0)
 
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     cv2.imshow('after filter', frame)
 
-    frame = cv2.adaptiveThreshold(gray, 255 
+    frame = cv2.adaptiveThreshold(frame, 255 
             , cv2.ADAPTIVE_THRESH_MEAN_C
             , cv2.THRESH_BINARY, 19, 0)
 

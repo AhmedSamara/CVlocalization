@@ -4,17 +4,16 @@ import cv2
 #n = int(argv[1])
 
 
-cap = cv2.VideoCapture("/dev/video0")
+cap = cv2.VideoCapture(0)
 # set resolution to low
 
 while True:
     # Capture frame-by-frame
     ret, frame = cap.read()
     
-    print ret
-
+    cv2.circle(frame,  (0,0), 100, (255,255,255), 8)
     cv2.imshow('surf', frame)
-
+    
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
