@@ -23,6 +23,7 @@ else:
 
 
 # Set calibration matrix. Look @ openCV docs on cam calibration for detail
+# Note: These are supposed to be unique for every camera but data is still generally correct most of the time.
 cam_matrix = np.zeros((3,3), np.float32)
 
 cam_matrix[0,0] = 1.9961704327353971e+03
@@ -44,27 +45,12 @@ distcoeffs[0,4] = 1.2459859993672681e+03
 
 
 # Dimensions of QR code
+# Note: Units are defined by camera calibration file.
 l = 1.5 
 verts = np.float32([[-l/2, -l/2, 0],
                     [-l/2, l/2, 0],
                     [l/2, -l/2, 0],
                     [l/2, l/2, 0]])
-
-step_size = 5
-box_x = 0
-box_y = 0
-bl = 160
-
-
-px = PID()
-py = PID()
-
-p = 0.1
-i = 0
-d = 0
-
-px.set_k_values(p, i, d)
-py.set_k_values(p, i, d)
 
 
 while True:
@@ -81,18 +67,16 @@ while True:
     cv2.imshow('before filter', frame)
 
     #frame = cv2.bilateralFilter(frame, 9, 75, 75) 
-
+    # Image pre-processing to make sure it's readable.
     frame = cv2.GaussianBlur(frame, (5,5), 0)
-
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     cv2.imshow('after filter', frame)
-
     frame = cv2.adaptiveThreshold(frame, 255 
             , cv2.ADAPTIVE_THRESH_MEAN_C
             , cv2.THRESH_BINARY, 19, 0)
 
+    # Convert OpenCV images to ZBAR images.
     cv2.imwrite('buffer.png', frame)
-    #im to zbar frame
     pil_im = Image.open('buffer.png').convert('L')
     width, height = pil_im.size
     raw = pil_im.tobytes()
@@ -102,7 +86,8 @@ while True:
 
     mag_vec = []
     mag_2d = []
-    # find all symbols in obj
+    
+    # find all symbols in obj (either barcodes or QR codes)
     scanner.scan(z_im)
     for symbol in z_im:
         # Find vertices of code
@@ -122,6 +107,7 @@ while True:
         print "Rotation: ", rvec
         print "vec:      ", tvec
 
+    # Manually delete images due to memory leaks.
     del(z_im)
     del(pil_im)     
     
@@ -133,7 +119,6 @@ while True:
     cv2.imshow('frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-
 
 cap.release()
 cv2.destroyAllWindows()
